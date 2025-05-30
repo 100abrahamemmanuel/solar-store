@@ -17,22 +17,16 @@ const {
 
 const { getSingleProductReviews } = require('../controllers/review');
 
-router
-  .route('/')
-  .post(authenticateUser, createProduct)
-  .get(getAllProducts);
+router.route('/create').post(authenticateUser, createProduct)
+router.route('/all').post(getAllProducts);
 
-// router
-//   .route('/uploadImage')
-//   .post(authenticateUser, uploadImage);
+ 
 
-router
-  .route('/item/:id')
-  .get(getSingleProduct)
-  .patch(authenticateUser, updateProduct)
-  .delete(authenticateUser, deleteProduct);
+router.route('/getItem/:id').post(getSingleProduct)
+router.route('/updateItem/:id').post(authenticateUser, updateProduct)
+router.route('/deleteItem/:id').post(authenticateUser, deleteProduct);
 
-router.route('/:id/reviews').get(getSingleProductReviews);
-router.route('/category').get(searchProducts);
+router.route('/:id/reviews').post(getSingleProductReviews);
+router.route('/category').post(searchProducts);
 
 module.exports = router;

@@ -7,65 +7,47 @@ const {  NotFoundError, BadRequestError, UnauthenticatedError } = require("../er
 
 const createProduct = async (req, res) => {
   const {type}=req.body
-    let userId;
-    if(req.user._id){
-        userId=req.user._id.toString()
-    } 
-    else if (req.user.userId){
-        userId=req.user.userId .toString()
-    }
-    else{
-        userId='null'   
-    }
-    userId=='null'? loggedIn=false: loggedIn=true
-    if (loggedIn==false) {
-        throw new UnauthenticatedError("User is not logged in")
-    }
-
-  const uploadedImgResponses = [];    
-  if (Array.isArray(img)) { 
-      for (const file of img) { 
-          const uploadedResponse = await cloudinary.uploader.upload(file.tempFilePath,{ 
-          use_filename: true,
-          folder: 'Post-images',
-          resource_type:'image',
-          transformation: [
-              {quality: "auto", fetch_format: 'auto'},
-              {fetch_format: "auto"}
-          ]
-      })
-      
-      // uploadedImgResponses.push(uploadedResponse.secure_url); 
-      // } 
-      // console.log(uploadedResponse.width,uploadedResponse.height)
-      uploadedImgResponses.push({
-          url: uploadedResponse.secure_url,
-          width: uploadedResponse.width,  // Extract width
-          height: uploadedResponse.height, // Extract height,
-          aspectRatio : uploadedResponse.width/uploadedResponse.height, // 527 / 1000 = 0.527
-
-      });
-  }
+  let userId;
+  if(req.user._id){
+      userId=req.user._id.toString()
   } 
-  else { 
-      const uploadedResponse = await cloudinary.uploader.upload(img.tempFilePath,{ 
-      use_filename: true,
-      folder: 'Post-images',
-      resource_type:'image',
-      transformation: [
-          {quality: "auto", fetch_format: 'auto'},
-          {fetch_format: "auto"}
-      ]
-      })
-      
-      // uploadedImgResponses.push(uploadedResponse.secure_url)
-      uploadedImgResponses.push({
-          url: uploadedResponse.secure_url,
-          width: uploadedResponse.width,  // Extract width
-          height: uploadedResponse.height, // Extract height
-          aspectRatio : uploadedResponse.width/uploadedResponse.height,
-      });
+  else if (req.user.userId){
+      userId=req.user.userId .toString()
   }
+  else{
+      userId='null'   
+  }
+  userId=='null'? loggedIn=false: loggedIn=true
+  if (loggedIn==false) {
+      throw new UnauthenticatedError("User is not logged in")
+  }
+  let img;
+  req.files && req.files.image? img=req.files.image:null 
+  const uploadedImgResponses = [];    
+  
+    for (const file of img) { 
+        const uploadedResponse = await cloudinary.uploader.upload(file.tempFilePath,{ 
+        use_filename: true,
+        folder: 'Post-images',
+        resource_type:'image',
+        transformation: [
+            {quality: "auto", fetch_format: 'auto'},
+            {fetch_format: "auto"}
+        ]
+    })
+    
+    // uploadedImgResponses.push(uploadedResponse.secure_url); 
+    // } 
+    // console.log(uploadedResponse.width,uploadedResponse.height)
+    uploadedImgResponses.push({
+        url: uploadedResponse.secure_url,
+        width: uploadedResponse.width,  // Extract width
+        height: uploadedResponse.height, // Extract height,
+        aspectRatio : uploadedResponse.width/uploadedResponse.height, // 527 / 1000 = 0.527
+
+    });
+    }
+  
   
   const newProduct = await Product.create({
       user:userId,
@@ -86,8 +68,13 @@ const getAllProducts = async (req, res) => {
 };
 const searchProducts = async (req, res) => {
   const { search } = req.query;
-  console.log(search)
-  const product = await Product.find({ category:{ $regex: search, $options: 'i' } }).populate('reviews');
+  const product = await Product.find({ 
+    $or: [
+      { title: { $regex: search, $options: 'i' } }, // Search by title
+      { category: { $regex: search, $options: 'i' } }, // Search by category
+      { description: { $regex: search, $options: 'i' } } // Search by description
+    ]
+  }).populate('reviews');
 
   if (!product) {
     throw new CustomError.NotFoundError(`No product in this category`);
@@ -127,9 +114,13 @@ const deleteProduct = async (req, res) => {
   if (!product) {
     throw new CustomError.NotFoundError(`No product with id : ${productId}`);
   }
-
-  const imgId = product.img.split("/").pop().split(".")[0]
-  await cloudinary.uploader.destroy(imgId)
+  for (const file of post.img) { 
+    // const imgId = file.split("/").slice(7).join("/").split(".")[0]
+    const imgId = product.img.split("/").pop().split(".")[0]
+    await cloudinary.uploader.destroy(imgId)
+  }
+  // const imgId = product.img.split("/").pop().split(".")[0]
+  // await cloudinary.uploader.destroy(imgId)
 
   await product.remove();
   res.status(StatusCodes.OK).json({ msg: 'Success! Product removed.' });

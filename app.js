@@ -52,11 +52,13 @@ app.use(cors({
 
 
 // tstore
+const authRouter = require('./routes/authentication');
 const productRouter = require('./routes/product');
 const reviewRouter = require('./routes/review');
 const orderRouter = require('./routes/order');
 
 // using routers
+app.use('api/v1/auth',authRouter)
 app.use('/api/v1/products', productRouter);
 app.use('/api/v1/reviews', reviewRouter);
 app.use('/api/v1/orders', orderRouter);
