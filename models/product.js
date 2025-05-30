@@ -22,7 +22,6 @@ const reviewsSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Please provide product reviewerEmail'],
     },
-   
   }
 )
 const dimensionsSchema = new mongoose.Schema(
@@ -70,8 +69,8 @@ const ProductSchema = new mongoose.Schema(
     },
     image:[
       {
-          type:String,
-          default:[]
+           type:String,
+           default:[]
       }
     ],
    price:{
@@ -91,8 +90,11 @@ const ProductSchema = new mongoose.Schema(
    stock:{
       type: Number,
       default: 0,
+    }, 
+   tags:{
+      type: Array,
+      default: 0,
     },
-   tags:[index],
    brand:{
       type: String,
     },
@@ -116,7 +118,6 @@ const ProductSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Please provide product availabilityStatus'],
     },
-   reviews:[reviewsSchema],
    returnPolicy:{
       type: String,
       required: [true, 'Please provide product returnPolicy'],
@@ -137,7 +138,7 @@ const ProductSchema = new mongoose.Schema(
 );
 
 ProductSchema.virtual('reviews', {
-  ref: 'Review',
+  ref: 'Review', // This refers to the 'Review' model you should have defined
   localField: '_id',
   foreignField: 'product',
   justOne: false,
