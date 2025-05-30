@@ -10,7 +10,7 @@ const cors = require('cors')
 // imports
 const cookiesParser = require('cookie-parser') 
 const session = require('express-session')
-const passport = require('passport');
+// const passport = require('passport');
 const cloudinary = require('cloudinary').v2;
 
 cloudinary.config({
@@ -42,8 +42,8 @@ app.use(session({
   resave: true, 
   saveUninitialized: true,
 }))
-app.use(passport.initialize())  
-app.use(passport.session()) 
+// app.use(passport.initialize())  
+// app.use(passport.session()) 
 app.use(cors({
     origin: true, // Specify your frontend origin okay
     credentials: true,
