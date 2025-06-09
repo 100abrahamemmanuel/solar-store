@@ -10,7 +10,7 @@ const authenticateUser = async (req, res, next) => {
       if (accessToken) {
         const payload = isTokenValid(accessToken);
          
-        // req.user = payload.payload.user;
+
         if(payload.payload.tokenUser){
           req.user =payload.payload.tokenUser
           return next();
@@ -52,6 +52,7 @@ const authenticateUser = async (req, res, next) => {
 
 const authorizePermission =  (...roles)=>{
     return (req,res,next)=>{
+      
       if (!roles.includes(req.user.role)) {
         throw new UnauthenticatedError(
           'Unauthorized to access this route'

@@ -127,7 +127,7 @@ const ProductSchema = new mongoose.Schema(
       required: [true, 'Please provide product price'],
       default: 0,
     },
-   meta:[metaSchema],
+   meta:[metaSchema], 
    thumbnail: {
       type: String,
       required: [true, 'Please provide product image'],

@@ -1,6 +1,7 @@
 const {BadRequestError, UnauthenticatedError}=require('../errors')
 const {StatusCodes} = require('http-status-codes')
 const User = require('../models/User')
+const Authuser = require("../models/Authentication")
 const   Notification = require('../models/notification');
 const crypto = require('crypto');
 const {OAuth2Client} = require('google-auth-library');
@@ -18,29 +19,12 @@ const Token = require('../models/Token');
 const { attachResponseToCookie,createJWToken, creatTokenUser ,SendEmail,SendInvite, isTokenValid} = require('../utils');
 
 const register = async (req,res)=>{
-    const {name,email,phoneNumber,password,dateOfBirth,googleId}=req.body
-    let {username}= req.body
-    username=username.toLowerCase().replace(/ /g, '_');
-    let tweatcoins,pricingPlan,pricingPlanDuration,role ;
+    const {name,email,role,phoneNumber,password,dateOfBirth,googleId}=req.body
     let dateOfBirth2=new Date(dateOfBirth)
     if (!email && !phoneNumber) {
         throw new UnauthenticatedError("Please provide Your email or phone number")
     }
-    if (username == 'godwinaugustine' || username == 'tweatflash' || username == 'emmanuelabraham') { 
-        tweatcoins = 1000000
-        tweatcoins = 5000000
-        pricingPlan ="pro"
-        role="founders"
-        pricingPlanDuration= new Date(Date.now() + 30 * 365.25 * 24 * 60 * 60 * 1000)
-    }
-    else{  
-        tweatcoins = 50
-        aura = 50
-        pricingPlan ="basic"
-        role="user"
-        pricingPlanDuration=null
-    }
-
+  
 
 
     const digits ="0123456789abcdefghijklmnopqrstuvwxyz"
@@ -60,32 +44,14 @@ const register = async (req,res)=>{
         
         const authuser = await Authuser.create({
             name,
-            username,
             googleId,
             email,
             password,
             role,
             dateOfBirth:dateOfBirth2,
             verificationToken,
-            tweatcoins,
-            pricingPlan,
-            pricingPlanDuration
         })
-        // req.session.userData={
-        //     name,
-        //     username,
-        //     googleId,
-        //     email,
-        //     password,
-        //     role,
-        //     dateOfBirth:dateOfBirth2,
-        //     verificationToken,
-        //     tweatcoins,
-        //     pricingPlan,
-        //     pricingPlanDuration
-        // }
-
-        // const token= user.createJWT() 
+    
         var data =  {
         "api_key":process.env.SMS_API_KEY,
         "email_address" : authuser.email,
@@ -118,32 +84,13 @@ const register = async (req,res)=>{
 
             const authuser = await Authuser.create({
                 name,
-                username,
                 googleId,
                 phoneNumber,
+                role,
                 password,
                 dateOfBirth:dateOfBirth2,
                 verificationToken,
-                tweatcoins,
-                pricingPlan,
-                pricingPlanDuration
             })
-            // authuser={
-            //     name,
-            //     username,
-            //     googleId,
-            //     phoneNumber,
-            //     password,
-            //     dateOfBirth:dateOfBirth2,
-            //     verificationToken,
-            //     tweatcoins,
-            //     pricingPlan,
-            //     pricingPlanDuration
-            // }
-            // const token= user.createJWT() 
-        
-            //when you set up twilio account 
-              
 
             var data = {
                 "to": authuser.phoneNumber,
@@ -509,12 +456,8 @@ const sendVerificationEmailOrSms = async (req,res)=>{
         return res.status(StatusCodes.OK).json({verificationToken,token}) 
     }
 }
-
+ 
 const verifyEmail = async (req,res)=>{
-    // redisCilent = redis.createClient()
-    
-    
-    // console.log(req.body)
     const {email,verificationToken}=req.body
     
     if (!email) {
@@ -522,12 +465,12 @@ const verifyEmail = async (req,res)=>{
     }
     // const userData =req.session.userData
     const authuser= await Authuser.findOne({email})
-     
+
     if (!authuser) {
         throw new UnauthenticatedError('Invalid credentials, No user found with email')
     }
     if(authuser.isVerified){
-
+  
         // create refreshToken
         let refreshToken =''
         // checking if it already exist
@@ -570,25 +513,20 @@ const verifyEmail = async (req,res)=>{
     authuser.isVerified=true
     authuser.verified=Date.now()
     authuser.verificationToken='' 
-    // console.log(authuser.password)
     const user = await User.create({
         name:authuser.name,
-        username:authuser.username,
-        googleId:authuser.oogleId,
+        googleId:authuser.oogleId, 
         email:authuser.email,
-        password:authuser.password,
-        role:authuser.role,
+        password:authuser.password, 
+        role:authuser.role,  
         dateOfBirth:authuser.dateOfBirth,
-        verificationToken:authuser.verificationToken,
-        tweatcoins:authuser.tweatcoins,
-        pricingPlan:authuser.pricingPlan,
-        pricingPlanDuration:authuser.pricingPlanDuration
+        verificationToken:authuser.verificationToken 
     })
     user.isVerified=true
     user.verified=Date.now()
     user.verificationToken='' 
 
-    await user.save()  
+    await user.save()   
     await Authuser.findOneAndDelete({email})
     // create refreshToken
     let refreshToken =''
@@ -600,9 +538,7 @@ const verifyEmail = async (req,res)=>{
         if (!isValid) {
             throw new UnauthenticatedError('Invalid Credentials')
         }
-        refreshToken = existingToken.refreshToken
-        // attachResponseToCookie({res,user: tokenUser , refreshToken})
-        // return res.status(StatusCodes.OK).json({user: tokenUser})
+        refreshToken = existingToken.refreshToken 
         const accessTokenJWT = createJWToken({payload:{tokenUser}})
         const refreshTokenJWT = createJWToken({payload:{tokenUser,refreshToken}})
         
@@ -615,56 +551,9 @@ const verifyEmail = async (req,res)=>{
     const userToken = { refreshToken , ip , userAgent  , user: user._id}
     
 
-    await Token.create(userToken)
-
-    // attachResponseToCookie({ res, user: tokenUser, refreshToken })
-    
-    // res.status(StatusCodes.OK).json({ user: tokenUser}) 
+    await Token.create(userToken) 
     const accessTokenJWT = createJWToken({payload:{tokenUser}})
     const refreshTokenJWT = createJWToken({payload:{tokenUser,refreshToken}})
-    
-    const tweatflash = await User.findOne({username:'tweatflash'}).select("-password")
-    let channel;
-    if(tweatflash){
-        const notification = new Notification({
-            from:tweatflash._id,
-            to:user._id,
-            profileImage:tweatflash.profileImage,
-            username:tweatflash.username,
-            name:tweatflash.name,
-            type:"tweatstars"
-        })
-    
-        await notification.save()
-        
-        channel = await Channel.findOne({createdBy:tweatflash._id})
-    }
-    if(tweatflash && channel){
-        const isFollowing = user.following.includes(channel._id)
-    
-        
-        if (!isFollowing) {
-            await Channel.findByIdAndUpdate(channel._id,{$push:{followers:user._id}})
-            await User.findByIdAndUpdate(user._id,{$push:{following:channel._id}})
-        }
-    }
-
-    
-    // const Users = await User.find({ }).select('-password');
-
-    // let DEFAULT_EXPIRATION = 8600
-    // redisCilent.on("connect",async ()=>{
-    //     try{
-//                redisCilent.setEx(`allUsers`,DEFAULT_EXPIRATION,JSON.stringify(Users))
-    //         redisCilent.setEx(`userDetails-${user.username}`,DEFAULT_EXPIRATION,JSON.stringify(user))
-    //         redisCilent.setEx(`search-${user.username}`,DEFAULT_EXPIRATION,JSON.stringify(user))
-    //         redisCilent.setEx(`userDetails-${user._id}`,DEFAULT_EXPIRATION,JSON.stringify(user))
-    //     }catch(error){
-    //         throw new BadRequestError("An error occurred")
-    //     }   
-    // }) 
-    
-    // await redisCilent.connect()
 
 
     res.status(StatusCodes.OK).json({ msg: 'Email Verified',refreshTokenJWT,accessTokenJWT });
@@ -878,7 +767,6 @@ const login = async (req,res)=>{
         }
 
         const isPasswordCorrect = await  user.comparePassword(password)
-
 
 
         if (!isPasswordCorrect) {

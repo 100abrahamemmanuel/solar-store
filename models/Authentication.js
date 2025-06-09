@@ -3,21 +3,15 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const validator = require('validator');
-const AuthenticateUserSchema = new mongoose.Schema({
-    name:{
-        type:String,
-        required:[true,"Please provide your full name"],
-        trim: true,
-        minLength:3,
-        maxLength:50
-    },
-    username:{
-        type:String,
-        required:[true,"Please provide your preferred username"],
-        minLength:3,
-        maxLength:50,
-        trim: true,
-        unique:true
+
+const AuthenticateUserSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: [true, 'Please provide your full name'],
+      trim: true,
+      minLength: 3,
+      maxLength: 50,
     },
     email:{
         type:String,
@@ -38,89 +32,66 @@ const AuthenticateUserSchema = new mongoose.Schema({
         },
         unique:'composite/_id' // creates a unique index, it is not a validator, incase you are trying to crate a user with that email we will recieve a duplicate error message
     },
-    dateOfBirth:{
-        type: Date,
-        required: [true,"Please provide your birth date"],
-        trim: true,
+    dateOfBirth: {
+      type: Date,
+      required: [true, 'Please provide your birth date'],
+      trim: true,
     },
-    gender:{
-        type:String,
-        enum:["female","male","custom"]
+    role: {
+      type: String,
+      enum: ['admin', 'user'],
+      default: 'user',
     },
-    password:{
-        type:String,
-        required:[true,'Please provide password '],
-        trim: true,
-        minLength:8
+    gender: {
+      type: String,
+      enum: ['female', 'male', 'custom'],
     },
-    
-    tweatcoins:{
-        type:Number,
-        default:0,
+    password: {
+      type: String,
+      required: [true, 'Please provide a password'],
+      trim: true,
+      minLength: 8,
     },
-    pricingPlanDuration:{
-        type:Date,
+    verificationToken: {
+      type: String,
+      default: '',
     },
-    verified:{
-        type:Date,
-    },
-    verificationToken:{
-        type:String,
-        default:""
-    },
-    resetPasswordToken:String,
-    resetPasswordExpire:Date,
-    suspended:{
-        type:Boolean,
-        default:false
-    }
-},{
-    timestamps:true,
-    index:{
-        email:1,
-        phoneNumber:1,
-        
-        tweatcoins: 1
-    },
-    unique:['email','phoneNumber'],
-    sparse:['blockedUsers','tweatcoins']
-})
+    resetPasswordToken: String,
+    resetPasswordExpire: Date,
+  },
+  {
+    timestamps: true,
+  }
+);
 
-AuthenticateUserSchema.pre('save',async function(next){
-    // since we added required true in the schema this help use bypass it because we are not changing the password in forgot password route
-    if (!this.isModified("password")) {
-        next()
-    }
-    // calling the bcrypt method to generate things
-    // const salt = await bcrypt.genSalt(10)
-    // mapping it to the password or hashing the password in your document
-    // this.password = await bcrypt.hash(this.password,salt)
-    this.password = this.password
-})
+// Indexing to enforce uniqueness while allowing optional phone numbers
+// AuthenticateUserSchema.index({ email: 1 }, { unique: true });
+// AuthenticateUserSchema.index({ phoneNumber: 1 }, { unique: true, sparse: true });
 
-AuthenticateUserSchema.methods.createJWT= function () {
-    return jwt.sign(
-        {userID:this._id,name:this.name},
-        process.env.JWT_SECRET,
-        {expiresIn:process.env.JWT_LIFETIME}
-    )
-}
+// Middleware for password hashing
+AuthenticateUserSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
+  next();
+});
 
-AuthenticateUserSchema.methods.comparePassword=async function (usersPassword) {
-    const isMatch = await bcrypt.compare(usersPassword,this.password)
-    return isMatch
-}
+// Generate JWT token
+AuthenticateUserSchema.methods.createJWT = function () {
+  return jwt.sign(
+    { userID: this._id, name: this.name },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_LIFETIME }
+  );
+};
 
-AuthenticateUserSchema.methods.getResetPasswordToken= function () {
-    const resetToken = crypto.randomBytes(70).toString("hex")
-    this.resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex")
-    this.resetPasswordExpire= Date.now() + 10 * (60*1000)// 10 minutes
-    return resetToken
-}
+ 
+// Generate password reset token
+AuthenticateUserSchema.methods.getResetPasswordToken = function () {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+  this.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+  return resetToken;
+};
 
-const Authuser = mongoose.model('authuser', AuthenticateUserSchema);
+const AuthUser = mongoose.model('AuthUser', AuthenticateUserSchema);
 
-
-  
-
-module.exports= Authuser
+module.exports = AuthUser;

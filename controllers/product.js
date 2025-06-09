@@ -1,4 +1,5 @@
 const Product = require('../models/product');
+const User = require("../models/User")
 const { StatusCodes } = require('http-status-codes');
 const CustomError = require('../errors');
 const path = require('path');
@@ -6,67 +7,128 @@ const cloudinary = require('cloudinary').v2;
 const {  NotFoundError, BadRequestError, UnauthenticatedError } = require("../errors");
 
 const createProduct = async (req, res) => {
-  const {type}=req.body
+  // const {type}=req.body
+  // console.log(req.user._id)
   let userId;
-  if(req.user._id){
+  if(req.user ){
       userId=req.user._id.toString()
   } 
-  else if (req.user.userId){
+  else if (req.user ){
       userId=req.user.userId .toString()
   }
   else{
       userId='null'   
   }
   userId=='null'? loggedIn=false: loggedIn=true
-  if (loggedIn==false) {
-      throw new UnauthenticatedError("User is not logged in")
-  }
+  // if (loggedIn==false) {
+  //     throw new UnauthenticatedError("User is not logged in")
+  // }
+  // console.log(req.body)
+  const user = await User.findOne({_id:userId}) 
+  if(user.role!="admin") throw new BadRequestError("Unauthorized to access this route");
   let img;
-  req.files && req.files.image? img=req.files.image:null 
-  const uploadedImgResponses = [];    
-  
-    for (const file of img) { 
-        const uploadedResponse = await cloudinary.uploader.upload(file.tempFilePath,{ 
-        use_filename: true,
-        folder: 'Post-images',
-        resource_type:'image',
-        transformation: [
-            {quality: "auto", fetch_format: 'auto'},
-            {fetch_format: "auto"}
-        ]
-    })
-    
-    // uploadedImgResponses.push(uploadedResponse.secure_url); 
-    // } 
-    // console.log(uploadedResponse.width,uploadedResponse.height)
-    uploadedImgResponses.push({
-        url: uploadedResponse.secure_url,
-        width: uploadedResponse.width,  // Extract width
-        height: uploadedResponse.height, // Extract height,
-        aspectRatio : uploadedResponse.width/uploadedResponse.height, // 527 / 1000 = 0.527
+  req.files && req.files.image? img=req.files.image:null  
+  const uploadedImgResponses = [];
+  if (Array.isArray(img)) { 
+      for (const file of img) { 
+          const uploadedResponse = await cloudinary.uploader.upload(file.tempFilePath,{ 
+          use_filename: true,
+          folder: 'Post-images',
+          resource_type:'image',
+          transformation: [
+              {quality: "auto", fetch_format: 'auto'},
+              {fetch_format: "auto"}
+          ]
+      })
+       
+      uploadedImgResponses.push({
+          url: uploadedResponse.secure_url,
+          width: uploadedResponse.width,  // Extract width
+          height: uploadedResponse.height, // Extract height,
+          aspectRatio : uploadedResponse.width/uploadedResponse.height, // 527 / 1000 = 0.527
 
-    });
-    }
+      });
+  }
+  } else { 
+      const uploadedResponse = await cloudinary.uploader.upload(img.tempFilePath,{ 
+      use_filename: true,
+      folder: 'Post-images',
+      resource_type:'image',
+      transformation: [
+          {quality: "auto", fetch_format: 'auto'},
+          {fetch_format: "auto"}
+      ]
+      })
+      
+      // uploadedImgResponses.push(uploadedResponse.secure_url)
+      uploadedImgResponses.push({
+          url: uploadedResponse.secure_url,
+          width: uploadedResponse.width,  // Extract width
+          height: uploadedResponse.height, // Extract height
+          aspectRatio : uploadedResponse.width/uploadedResponse.height,
+      });
+  }
+   
   
+   
   
   const newProduct = await Product.create({
-      user:userId,
-      type,
-      text,
-      code,
-      img:uploadedImgResponses,
-      audio
-  })
-    
-  await newProduct.save()
-  res.status(StatusCodes.CREATED).json({ newProduct });
-};
-const getAllProducts = async (req, res) => {
-  const products = await Product.find({});
+    title: req.body.title,
+    description: req.body.description,
+    category: req.body.category,
+    price: Number(req.body.price),
+    discountPercentage: Number(req.body.discountPercentage),
+    rating: Number(req.body.rating),
+    stock: Number(req.body.stock),
+    brand: req.body.brand,
+    sku: req.body.sku,
+    weight: Number(req.body.weight),
+    dimensions: JSON.parse(req.body.dimensions), // Convert string to object
+    warrantyInformation: req.body.warrantyInformation,
+    shippingInformation: req.body.shippingInformation,
+    availabilityStatus: req.body.availabilityStatus,
+    reviews: JSON.parse(req.body.reviews), // Convert string to array of objects
+    returnPolicy: req.body.returnPolicy,
+    minimumOrderQuantity: Number(req.body.minimumOrderQuantity),
+    meta: JSON.parse(req.body.meta), // Convert string to object
+    thumbnail: req.body.thumbnail,
+    images: JSON.parse(req.body.images), // Convert string to array 
+  });
 
-  res.status(StatusCodes.OK).json({ products, count: products.length });
+  await newProduct.save()
+  res.status(StatusCodes.CREATED).json({ newProduct,loggedIn });
 };
+
+const getAllProducts = async (req, res) => {
+     let userId;
+  if(req.user ){
+      userId=req.user._id.toString()
+  } 
+  else if (req.user ){
+      userId=req.user.userId .toString()
+  }
+  else{
+      userId='null'   
+  }
+  userId=='null'? loggedIn=false: loggedIn=true
+  const products = await Product.find({}).sort({ rating: -1 });  
+
+
+  res.status(StatusCodes.OK).json({ products, count: products.length,loggedIn });
+};
+
 const searchProducts = async (req, res) => {
+     let userId;
+  if(req.user ){
+      userId=req.user._id.toString()
+  } 
+  else if (req.user ){
+      userId=req.user.userId .toString()
+  }
+  else{
+      userId='null'   
+  }
+  userId=='null'? loggedIn=false: loggedIn=true
   const { search } = req.query;
   const product = await Product.find({ 
     $or: [
@@ -80,19 +142,45 @@ const searchProducts = async (req, res) => {
     throw new CustomError.NotFoundError(`No product in this category`);
   }
 
-  res.status(StatusCodes.OK).json({ product }); 
+  res.status(StatusCodes.OK).json({ product,loggedIn }); 
 };
+
 const getSingleProduct = async (req, res) => {
+     let userId;
+  if(req.user ){
+      userId=req.user._id.toString()
+  } 
+  else if (req.user ){
+      userId=req.user.userId .toString()
+  }
+  else{
+      userId='null'   
+  }
+  userId=='null'? loggedIn=false: loggedIn=true
   const { id: productId } = req.params;
   const product = await Product.findOne({ _id: productId }).populate('reviews');
 
   if (!product) {
-    throw new CustomError.NotFoundError(`No product with id : ${productId}`);
+    throw new NotFoundError(`No product with id : ${productId}`);
   }
 
-  res.status(StatusCodes.OK).json({ product });
+  res.status(StatusCodes.OK).json({ product,loggedIn });
 };
 const updateProduct = async (req, res) => {
+   let userId;
+  if(req.user ){
+      userId=req.user._id.toString()
+  } 
+  else if (req.user ){
+      userId=req.user.userId .toString()
+  }
+  else{
+      userId='null'   
+  }
+  userId=='null'? loggedIn=false: loggedIn=true
+  const user = await User.findOne({_id:userId}) 
+  if(user.role!="admin") throw new BadRequestError("Unauthorized to access this route");
+
   const { id: productId } = req.params;
 
   const product = await Product.findOneAndUpdate({ _id: productId }, req.body, {
@@ -104,8 +192,9 @@ const updateProduct = async (req, res) => {
     throw new CustomError.NotFoundError(`No product with id : ${productId}`);
   }
 
-  res.status(StatusCodes.OK).json({ product });
+  res.status(StatusCodes.OK).json({ product,loggedIn });
 };
+
 const deleteProduct = async (req, res) => {
   const { id: productId } = req.params;
 

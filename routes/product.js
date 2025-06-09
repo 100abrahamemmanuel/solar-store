@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
   authenticateUser,
-//   authorizePermissions,
+  authorizePermission,
 } = require('../middlewares/authentication');
 
 const {
@@ -17,7 +17,7 @@ const {
 
 const { getSingleProductReviews } = require('../controllers/review');
 
-router.route('/create').post(authenticateUser, createProduct)
+router.route('/create').post( authenticateUser, createProduct)
 router.route('/all').post(getAllProducts);
 
  

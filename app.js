@@ -3,8 +3,9 @@ require('express-async-errors');
 const express = require('express')
 const app = express()
 const Product = require('./models/product');
+const fileUpload = require('express-fileupload');
 
-
+ 
 
 const cors = require('cors') 
 // imports
@@ -29,14 +30,14 @@ const connectDB = require('./db/connect')
 
 // Extra packages
 app.use(express.json())
-// app.use(fileUpload({ 
-//     useTempFiles: true, tempFileDir: '/tmp/', limits: { fileSize: 50 * 1024 * 1024 } // 50MB file size limit 
-// }));
+app.use(fileUpload({ 
+    useTempFiles: true, tempFileDir: '/tmp/', limits: { fileSize: 50 * 1024 * 1024 } // 50MB file size limit 
+}));
 app.use(cookiesParser(process.env.JWT_SECRET))
 app.set('trust proxy', 1) 
 
 const initialExpirationTime = 30 * 60;
-
+ 
 app.use(session({ 
   secret: process.env.SESSION_SECRET,   
   resave: true, 
@@ -58,7 +59,7 @@ const reviewRouter = require('./routes/review');
 const orderRouter = require('./routes/order');
 
 // using routers
-app.use('api/v1/auth',authRouter)
+app.use('/api/v1/auth',authRouter)
 app.use('/api/v1/products', productRouter);
 app.use('/api/v1/reviews', reviewRouter);
 app.use('/api/v1/orders', orderRouter);
@@ -78,6 +79,7 @@ const start = async ()=>{
         await connectDB(process.env.MONGO_URI)
 
         app.listen(PORT,()=>{
+            
             console.log(`server is listening on port: ${PORT}...`)
         })
     } catch (error) { 
