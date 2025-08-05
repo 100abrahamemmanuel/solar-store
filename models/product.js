@@ -67,12 +67,14 @@ const ProductSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Please provide product category'],
     },
-    image:[
-      {
-           type:String,
-           default:[]
-      }
-    ],
+    image: [
+    {
+      url: { type: String, required: true },
+      width: { type: Number },
+      height: { type: Number },
+      aspectRatio: { type: Number }
+    } 
+  ],
    price:{
       type: Number,
       required: [true, 'Please provide product price'],

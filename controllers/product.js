@@ -29,6 +29,7 @@ const createProduct = async (req, res) => {
   let img;
   req.files && req.files.image? img=req.files.image:null  
   const uploadedImgResponses = [];
+  console.log(img)
   if (Array.isArray(img)) { 
       for (const file of img) { 
           const uploadedResponse = await cloudinary.uploader.upload(file.tempFilePath,{ 
@@ -69,33 +70,34 @@ const createProduct = async (req, res) => {
       });
   }
    
-  
+    
    
-  
-  const newProduct = await Product.create({
-    title: req.body.title,
-    description: req.body.description,
-    category: req.body.category,
-    price: Number(req.body.price),
-    discountPercentage: Number(req.body.discountPercentage),
-    rating: Number(req.body.rating),
-    stock: Number(req.body.stock),
-    brand: req.body.brand,
-    sku: req.body.sku,
-    weight: Number(req.body.weight),
-    dimensions: JSON.parse(req.body.dimensions), // Convert string to object
-    warrantyInformation: req.body.warrantyInformation,
-    shippingInformation: req.body.shippingInformation,
-    availabilityStatus: req.body.availabilityStatus,
-    reviews: JSON.parse(req.body.reviews), // Convert string to array of objects
-    returnPolicy: req.body.returnPolicy,
-    minimumOrderQuantity: Number(req.body.minimumOrderQuantity),
-    meta: JSON.parse(req.body.meta), // Convert string to object
-    thumbnail: req.body.thumbnail,
-    images: JSON.parse(req.body.images), // Convert string to array 
-  });
+  console.log(uploadedImgResponses)
+    const newProduct = await Product.create({
+      title: req.body.title,
+      description: req.body.description,
+      category: req.body.category,
+      price: Number(req.body.price),
+      discountPercentage: Number(req.body.discountPercentage),
+      rating: Number(req.body.rating),
+      stock: Number(req.body.stock),
+      brand: req.body.brand,
+      sku: req.body.sku,
+      weight: Number(req.body.weight),
+      dimensions: JSON.parse(req.body.dimensions), // Convert string to object
+      warrantyInformation: req.body.warrantyInformation,
+      shippingInformation: req.body.shippingInformation,
+      availabilityStatus: req.body.availabilityStatus,
+      reviews: JSON.parse(req.body.reviews), // Convert string to array of objects
+      returnPolicy: req.body.returnPolicy,
+      minimumOrderQuantity: Number(req.body.minimumOrderQuantity),
+      meta: JSON.parse(req.body.meta), // Convert string to object
+      thumbnail: req.body.thumbnail,
+      image: uploadedImgResponses// Convert string to array 
+    });
 
   await newProduct.save()
+  console.log(newProduct.images)
   res.status(StatusCodes.CREATED).json({ newProduct,loggedIn });
 };
 
@@ -167,7 +169,8 @@ const getSingleProduct = async (req, res) => {
   res.status(StatusCodes.OK).json({ product,loggedIn });
 };
 const updateProduct = async (req, res) => {
-   let userId;
+  console.log('hi')
+  let userId;
   if(req.user ){
       userId=req.user._id.toString()
   } 
@@ -175,7 +178,7 @@ const updateProduct = async (req, res) => {
       userId=req.user.userId .toString()
   }
   else{
-      userId='null'   
+      userId='null'    
   }
   userId=='null'? loggedIn=false: loggedIn=true
   const user = await User.findOne({_id:userId}) 
