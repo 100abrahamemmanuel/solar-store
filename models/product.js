@@ -124,16 +124,22 @@ const ProductSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Please provide product returnPolicy'],
     },
+   fullDescription:{
+      type: String,
+    },
+   specifications:{
+      type: String,
+    },
    minimumOrderQuantity:{
       type: Number,
       required: [true, 'Please provide product price'],
       default: 0,
     },
    meta:[metaSchema], 
-   thumbnail: {
-      type: String,
-      required: [true, 'Please provide product image'],
-    },
+  //  thumbnail: {
+  //     type: String,
+  //     required: [true, 'Please provide product image'],
+  //   },
 
   },
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }

@@ -21,17 +21,6 @@ const UserSchema = new mongoose.Schema(
         },
         unique:'composite/_id' // creates a unique index, it is not a validator, incase you are trying to crate a user with that email we will recieve a duplicate error message
     },
-    phoneNumber:{
-        type:String,
-        trim: true,
-        validate:{
-            validator:function(value){
-                return validator.isMobilePhone(value,'any')
-            },
-            message:'Please provide valid PhoneNumber'
-        },
-        unique:'composite/_id' // creates a unique index, it is not a validator, incase you are trying to crate a user with that email we will recieve a duplicate error message
-    },
     dateOfBirth: {
       type: Date,
       required: [true, 'Please provide your birth date'],

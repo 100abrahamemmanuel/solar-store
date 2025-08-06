@@ -1070,50 +1070,11 @@ const userAuth = async (req,res)=>{
    
 
     const user = await User.findOne({_id:userId}).select("-password")
-    .populate({
-        path:"blockedUsers",
-        select:"_id name profileImage coverImage username"
-    })
-    .populate({
-        path:"following",
-        select:"_id name profileImage coverImage username"
-    })
-    .populate({
-        path:"followers",
-        select:"_id name profileImage coverImage username"
-    })
-    .populate({
-        path:"likedPosts",
-    })
-    .populate({
-        path:"reposts",
-    })
-    .populate({
-        path:"quotes",
-    })
-    .populate({
-        path: "quotes.pollId",
-    })    
-
-    const messages = await Message.find({
-        $or: [
-            { senderId: userId },
-            { receiverId: userId }
-        ], 
-        read: false
-    })
+    
 
 
-    const notifications = await Notification.find({to:userId,read:false})
-
-    const postCount = await Post.countDocuments({ user: userId});
-    // let notificationsCount = 0;
-    // notifications.forEach(post => {
-    //     cons
-    //     notificationsCount += post.length;
-    // }); 
-          
-    res.status(StatusCodes.OK).json({user,notificationsCount:notifications.length,messagesCount:messages.length,postCount})
+    const notifications = await Notification.find({to:userId})
+    res.status(StatusCodes.OK).json({user,notificationsCount:notifications.length})
 
 }   
 

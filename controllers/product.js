@@ -29,7 +29,7 @@ const createProduct = async (req, res) => {
   let img;
   req.files && req.files.image? img=req.files.image:null  
   const uploadedImgResponses = [];
-  console.log(img)
+  // console.log(img)
   if (Array.isArray(img)) { 
       for (const file of img) { 
           const uploadedResponse = await cloudinary.uploader.upload(file.tempFilePath,{ 
@@ -72,7 +72,7 @@ const createProduct = async (req, res) => {
    
     
    
-  console.log(uploadedImgResponses)
+  // console.log(uploadedImgResponses)
     const newProduct = await Product.create({
       title: req.body.title,
       description: req.body.description,
@@ -92,12 +92,13 @@ const createProduct = async (req, res) => {
       returnPolicy: req.body.returnPolicy,
       minimumOrderQuantity: Number(req.body.minimumOrderQuantity),
       meta: JSON.parse(req.body.meta), // Convert string to object
-      thumbnail: req.body.thumbnail,
+      // thumbnail: req.body.thumbnail,
+      fullDescription: req.body.fullDescription,
+      specifications: req.body.specifications,
       image: uploadedImgResponses// Convert string to array 
     });
 
   await newProduct.save()
-  console.log(newProduct.images)
   res.status(StatusCodes.CREATED).json({ newProduct,loggedIn });
 };
 
