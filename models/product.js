@@ -8,35 +8,35 @@ const reviewsSchema = new mongoose.Schema(
     },
     comment: {
       type: String,
-      required: [true, 'Please provide product comment'],
+      // required: [true, 'Please provide product comment'],
     },
     date: {
       type: String,
-      required: [true, 'Please provide product date'],
+      // required: [true, 'Please provide product date'],
     },
     reviewerName: {
       type: String,
-      required: [true, 'Please provide product reviewerName'],
+      // required: [true, 'Please provide product reviewerName'],
     },
     reviewerEmail:{
       type: String,
-      required: [true, 'Please provide product reviewerEmail'],
+      // required: [true, 'Please provide product reviewerEmail'],
     },
   }
 )
 const dimensionsSchema = new mongoose.Schema(
   {
     width: {
-      type: Number,
-      default: 0,
+      type: String,
+      default: '0',
     },
     height: {
-      type: Number,
-      default: 0,
+      type: String,
+      default: '0',
     },
     depth:{
-      type: Number,
-      default: 0,
+      type: String,
+      default: '0',
     }
   }
 )
@@ -44,11 +44,11 @@ const metaSchema = new mongoose.Schema(
   {
     barcode:{
       type: String,
-      required: [true, 'Please provide product barcode'],
+      // required: [true, 'Please provide product barcode'],
     },
     qrCode:{
       type: String,
-      required: [true, 'Please provide product qrCode'],
+      // required: [true, 'Please provide product qrCode'],
     },  
   },{timestamps:true}
 )

@@ -6,8 +6,18 @@ const CustomError = require('../errors');
 const { checkPermissions2 } = require('../utils');
 
 const createReview = async (req, res) => {
-  const { product: productId } = req.body;
-
+      let userId;
+  if(req.user ){
+      userId=req.user._id.toString()
+  } 
+  else if (req.user ){
+      userId=req.user.userId .toString()
+  }
+  else{
+      userId='null'    
+  }
+  userId=='null'? loggedIn=false: loggedIn=true
+  const { id: productId } = req.params;
   const isValidProduct = await Product.findOne({ _id: productId });
 
   if (!isValidProduct) {
@@ -18,18 +28,33 @@ const createReview = async (req, res) => {
     product: productId,
     user: req.user.userId,
   });
-
+ 
   if (alreadySubmitted) {
     throw new CustomError.BadRequestError(
       'Already submitted review for this product'
     );
   }
-
-  req.body.user = req.user.userId;
-  const review = await Review.create(req.body);
+  const review = await Review.create({
+    product: productId,
+    user: userId,
+    comment:req.body.comment,
+    rating:req.body.rating
+  });
   res.status(StatusCodes.CREATED).json({ review });
 };
 const getAllReviews = async (req, res) => {
+   let userId;
+  if(req.user ){
+      userId=req.user._id.toString()
+  } 
+  else if (req.user ){
+      userId=req.user.userId .toString()
+  }
+  else{
+      userId='null'    
+  }
+  userId=='null'? loggedIn=false: loggedIn=true
+
   const reviews = await Review.find({}).populate({
     path: 'product',
     select: 'name company price',
@@ -38,6 +63,18 @@ const getAllReviews = async (req, res) => {
   res.status(StatusCodes.OK).json({ reviews, count: reviews.length });
 };
 const getSingleReview = async (req, res) => {
+   let userId;
+  if(req.user ){
+      userId=req.user._id.toString()
+  } 
+  else if (req.user ){
+      userId=req.user.userId .toString()
+  }
+  else{
+      userId='null'    
+  }
+  userId=='null'? loggedIn=false: loggedIn=true
+
   const { id: reviewId } = req.params;
 
   const review = await Review.findOne({ _id: reviewId });
@@ -49,6 +86,18 @@ const getSingleReview = async (req, res) => {
   res.status(StatusCodes.OK).json({ review });
 };
 const updateReview = async (req, res) => {
+   let userId;
+  if(req.user ){
+      userId=req.user._id.toString()
+  } 
+  else if (req.user ){
+      userId=req.user.userId .toString()
+  }
+  else{
+      userId='null'    
+  }
+  userId=='null'? loggedIn=false: loggedIn=true
+
   const { id: reviewId } = req.params;
   const { rating, title, comment } = req.body;
 
@@ -68,6 +117,18 @@ const updateReview = async (req, res) => {
   res.status(StatusCodes.OK).json({ review });
 };
 const deleteReview = async (req, res) => {
+   let userId;
+  if(req.user ){
+      userId=req.user._id.toString()
+  } 
+  else if (req.user ){
+      userId=req.user.userId .toString()
+  }
+  else{
+      userId='null'    
+  }
+  userId=='null'? loggedIn=false: loggedIn=true
+
   const { id: reviewId } = req.params;
 
   const review = await Review.findOne({ _id: reviewId });
@@ -82,6 +143,18 @@ const deleteReview = async (req, res) => {
 };
 
 const getSingleProductReviews = async (req, res) => {
+   let userId;
+  if(req.user ){
+      userId=req.user._id.toString()
+  } 
+  else if (req.user ){
+      userId=req.user.userId .toString()
+  }
+  else{
+      userId='null'    
+  }
+  userId=='null'? loggedIn=false: loggedIn=true
+  
   const { id: productId } = req.params;
   const reviews = await Review.find({ product: productId });
   res.status(StatusCodes.OK).json({ reviews, count: reviews.length });

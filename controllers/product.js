@@ -73,30 +73,30 @@ const createProduct = async (req, res) => {
     
    
   // console.log(uploadedImgResponses)
-    const newProduct = await Product.create({
-      title: req.body.title,
-      description: req.body.description,
-      category: req.body.category,
-      price: Number(req.body.price),
-      discountPercentage: Number(req.body.discountPercentage),
-      rating: Number(req.body.rating),
-      stock: Number(req.body.stock),
-      brand: req.body.brand,
-      sku: req.body.sku,
-      weight: Number(req.body.weight),
-      dimensions: JSON.parse(req.body.dimensions), // Convert string to object
-      warrantyInformation: req.body.warrantyInformation,
-      shippingInformation: req.body.shippingInformation,
-      availabilityStatus: req.body.availabilityStatus,
-      reviews: JSON.parse(req.body.reviews), // Convert string to array of objects
-      returnPolicy: req.body.returnPolicy,
-      minimumOrderQuantity: Number(req.body.minimumOrderQuantity),
-      meta: JSON.parse(req.body.meta), // Convert string to object
-      // thumbnail: req.body.thumbnail,
-      fullDescription: req.body.fullDescription,
-      specifications: req.body.specifications,
-      image: uploadedImgResponses// Convert string to array 
-    });
+  const newProduct = await Product.create({
+    title: req.body.title,
+    description: req.body.description,
+    category: req.body.category,
+    price: Number(req.body.price),
+    discountPercentage: Number(req.body.discountPercentage),
+    rating: Number(req.body.rating),
+    stock: Number(req.body.stock),
+    brand: req.body.brand,
+    sku: req.body.sku,
+    weight: Number(req.body.weight),
+    dimensions: JSON.parse(req.body.dimensions), // Convert string to object
+    warrantyInformation: req.body.warrantyInformation,
+    shippingInformation: req.body.shippingInformation,
+    availabilityStatus: req.body.availabilityStatus,
+    reviews: JSON.parse(req.body.reviews), // Convert string to array of objects
+    returnPolicy: req.body.returnPolicy,
+    minimumOrderQuantity: Number(req.body.minimumOrderQuantity),
+    meta: JSON.parse(req.body.meta), // Convert string to object
+    // thumbnail: req.body.thumbnail,
+    fullDescription: req.body.fullDescription,
+    specifications: req.body.specifications,
+    image: uploadedImgResponses// Convert string to array 
+  });
 
   await newProduct.save()
   res.status(StatusCodes.CREATED).json({ newProduct,loggedIn });
@@ -149,7 +149,7 @@ const searchProducts = async (req, res) => {
 };
 
 const getSingleProduct = async (req, res) => {
-     let userId;
+  let userId;
   if(req.user ){
       userId=req.user._id.toString()
   } 
@@ -170,7 +170,7 @@ const getSingleProduct = async (req, res) => {
   res.status(StatusCodes.OK).json({ product,loggedIn });
 };
 const updateProduct = async (req, res) => {
-  console.log('hi')
+ 
   let userId;
   if(req.user ){
       userId=req.user._id.toString()
@@ -182,24 +182,63 @@ const updateProduct = async (req, res) => {
       userId='null'    
   }
   userId=='null'? loggedIn=false: loggedIn=true
+
+  const {title, description, category,price,discountPercentage,rating,stock,brand,sku,weight, dimensions,warrantyInformation, shippingInformation, availabilityStatus, returnPolicy, minimumOrderQuantity, meta, fullDescription, specifications}= req.body
+
   const user = await User.findOne({_id:userId}) 
   if(user.role!="admin") throw new BadRequestError("Unauthorized to access this route");
 
   const { id: productId } = req.params;
 
-  const product = await Product.findOneAndUpdate({ _id: productId }, req.body, {
-    new: true,
-    runValidators: true,
-  });
+  // const product = await Product.findOneAndUpdate({ _id: productId }, req.body, {
+  //   new: true,
+  //   runValidators: true,
+  // });
+  const product = await Product.findOneAndUpdate({ _id: productId });
+
+
+  product.title= title || product.title,
+  product.description=description || product.description,
+  product.category=category || product.category,
+  product.price=Number(price) || Number(product.price),
+  product.discountPercentage=Number(discountPercentage) || Number(product.discountPercentage),
+  product.rating=Number(rating) || Number(product.rating),
+  product.stock=Number(stock) || Number(product.stock),
+  product.brand=brand || product.brand,
+  product.sku=sku || product.sku,
+  product.weight=Number(weight) || Number(product.weight),
+  product.dimensions=dimensions || product.dimensions, 
+  product.warrantyInformation=warrantyInformation || product.warrantyInformation,
+  product.shippingInformation=shippingInformation || product.shippingInformation,
+  product.availabilityStatus=availabilityStatus || product.availabilityStatus,
+  product.returnPolicy=returnPolicy || product.returnPolicy,
+  product.minimumOrderQuantity=Number(minimumOrderQuantity) || Number(product.minimumOrderQuantity),
+  product.meta=meta || product.meta,
+  product.fullDescription=fullDescription || product.fullDescription,
+  product.specifications=specifications || product.specifications
+
+  let product2 = await product.save()
 
   if (!product) {
     throw new CustomError.NotFoundError(`No product with id : ${productId}`);
   }
 
-  res.status(StatusCodes.OK).json({ product,loggedIn });
+  res.status(StatusCodes.OK).json({ product2,loggedIn });
 };
 
 const deleteProduct = async (req, res) => {
+  console.log("HI")
+  let userId;
+  if(req.user ){
+      userId=req.user._id.toString()
+  } 
+  else if (req.user ){
+      userId=req.user.userId .toString()
+  }
+  else{
+      userId='null'   
+  }
+  userId=='null'? loggedIn=false: loggedIn=true
   const { id: productId } = req.params;
 
   const product = await Product.findOne({ _id: productId });
@@ -207,15 +246,15 @@ const deleteProduct = async (req, res) => {
   if (!product) {
     throw new CustomError.NotFoundError(`No product with id : ${productId}`);
   }
-  for (const file of post.img) { 
-    // const imgId = file.split("/").slice(7).join("/").split(".")[0]
-    const imgId = product.img.split("/").pop().split(".")[0]
-    await cloudinary.uploader.destroy(imgId)
-  }
+  // for (const file of product.image) { 
+  //   // const imgId = file.split("/").slice(7).join("/").split(".")[0]
+  //   const imgId = product.img.split("/").pop().split(".")[0]
+  //   await cloudinary.uploader.destroy(imgId)
+  // }
   // const imgId = product.img.split("/").pop().split(".")[0]
   // await cloudinary.uploader.destroy(imgId)
 
-  await product.remove();
+  await product.deleteOne();
   res.status(StatusCodes.OK).json({ msg: 'Success! Product removed.' });
 };
 

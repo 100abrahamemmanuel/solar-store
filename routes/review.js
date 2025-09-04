@@ -10,12 +10,11 @@ const {
   deleteReview,
 } = require('../controllers/review');
 
-router.route('/').post(authenticateUser, createReview).get(getAllReviews);
+router.route('/create/:id').post(authenticateUser, createReview).get(getAllReviews);
 
-router
-  .route('/:id')
-  .get(getSingleReview)
-  .patch(authenticateUser, updateReview)
-  .delete(authenticateUser, deleteReview);
+router.route('/getSingleReview/:id').post(getSingleReview)
+router.route('/update/:id').post(authenticateUser, updateReview)
+router.route('/delete/:id').post(authenticateUser, deleteReview);
 
 module.exports = router;
+ 
