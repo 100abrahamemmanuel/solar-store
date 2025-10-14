@@ -4,7 +4,7 @@ const SingleOrderItemSchema = mongoose.Schema({
     name: { type: String, required: true },
     image: { type: String, required: true },
     price: { type: Number, required: true },
-    amount: { type: Number, required: true },
+    quantity: { type: Number, required: true },
     product: {
       type: mongoose.Schema.ObjectId,
       ref: 'Product',
@@ -37,10 +37,38 @@ const OrderSchema = mongoose.Schema(
       ref: 'User',
       required: true,
     },
-    clientSecret: {
+    name: {
       type: String,
       required: true,
     },
+    phoneNumber: {
+      type: String,
+      required: true,
+    },
+    states: {
+      type: String,
+      required: true,
+    },
+    address: {
+      type: String,
+      required: true,
+    },
+    appartment: {
+      type: String,
+      required: true,
+    },
+    shippingMethod: {
+      type: String,
+      enum: ['Delivery', 'Self-Pickup'],
+    },
+    refreshToken: {
+      type: String,
+      required: true,
+    },
+    // clientSecret: {
+    //   type: String,
+    //   required: true,
+    // },
     paymentIntentId: {
       type: String,
     },

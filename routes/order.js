@@ -13,16 +13,14 @@ const {
   updateOrder,
 } = require('../controllers/order');
 
-router
-  .route('/') 
-  .post(authenticateUser, createOrder) 
-  .get(authenticateUser, getAllOrders);
 
-router.route('/showAllMyOrders').get(authenticateUser, getCurrentUserOrders);
 
-router
-  .route('/:id')
-  .get(authenticateUser, getSingleOrder)
-  .patch(authenticateUser, updateOrder);
+router.route('/showAllMyOrders').post(authenticateUser, getCurrentUserOrders);
 
+router.route('/create').post(authenticateUser, createOrder) 
+router.route('/get').post(authenticateUser, getAllOrders);
+router.route('/getSingle/:id').post(authenticateUser, getSingleOrder)
+router.route('/Update/:id').post(authenticateUser, updateOrder);
+  
+  
 module.exports = router;

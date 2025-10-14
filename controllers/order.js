@@ -8,7 +8,18 @@ const { checkPermissions } = require('../utils');
 
 
 const createOrder = async (req, res) => {
-  const { items: cartItems, shippingFee } = req.body;
+  let userId;
+  if(req.user ){
+      userId=req.user._id.toString()
+  } 
+  else if (req.user ){
+      userId=req.user.userId .toString()
+  }
+  else{
+      userId='null'   
+  }
+  userId=='null'? loggedIn=false: loggedIn=true
+  const { items: cartItems, shippingFee, phoneNumber,name,states,address,appartment,shippingMethod,refreshToken } = req.body;
 
   if (!cartItems || cartItems.length < 1) {
     throw new CustomError.BadRequestError('No cart items provided');
@@ -21,7 +32,7 @@ const createOrder = async (req, res) => {
   let subtotal = 0;
 
   for (const item of cartItems) {
-    const product = await Product.findById(item);
+    const product = await Product.findById(item.id);
     if (!product) {
       throw new CustomError.NotFoundError(`No product found with this id: ${item.product}`);
     }
@@ -30,25 +41,31 @@ const createOrder = async (req, res) => {
       name: product.title,
       image: product.image[0]?.url || '', // fallback if image array is empty
       price: product.price,
-      amount: item.amount,
+      quantity: item.quantity,
       product: product._id,
     };
 
     orderItems.push(singleOrderItem);
-    subtotal += item.amount * product.price;
+    subtotal += item.quantity * product.price;
   }
 
   const total =shippingFee + subtotal;
 
 
-
   const order = await Order.create({
+    user: userId,
     orderItems,
     total,
     subtotal,
     shippingFee,
-    refreshToken: paymentIntent.client_secret,
-    user: req.user.userId,
+    phoneNumber,
+    name,
+    states,
+    address,
+    appartment,
+    shippingMethod,
+    refreshToken,
+    // refreshToken: paymentIntent.client_secret,
   });
 
   res.status(StatusCodes.CREATED).json({
@@ -57,6 +74,17 @@ const createOrder = async (req, res) => {
 };
 
 const getAllOrders = async (req, res) => {
+  let userId;
+  if(req.user ){ 
+      userId=req.user._id.toString()
+  } 
+  else if (req.user ){
+      userId=req.user.userId .toString()
+  }
+  else{
+      userId='null'   
+  }
+  userId=='null'? loggedIn=false: loggedIn=true
   const orders = await Order.find({});
   res.status(StatusCodes.OK).json({ orders, count: orders.length });
 };    
@@ -64,20 +92,53 @@ const getAllOrders = async (req, res) => {
 
 
 const getSingleOrder = async (req, res) => {
+  let userId;
+  if(req.user ){
+      userId=req.user._id.toString()
+  } 
+  else if (req.user ){
+      userId=req.user.userId .toString()
+  }
+  else{
+      userId='null'   
+  }
+  userId=='null'? loggedIn=false: loggedIn=true
   const { id: orderId } = req.params;
   const order = await Order.findOne({ _id: orderId });
   if (!order) { 
     throw new CustomError.NotFoundError(`No order with id : ${orderId}, pls check again`);
   }   
-  checkPermissions(req.user, order.user);
+  // authorizePermission(req.user, order.user);
   res.status(StatusCodes.OK).json({ order });
-};
+}; 
 
 const getCurrentUserOrders = async (req, res) => {
-  const orders = await Order.find({ user: req.user.userId });
+  let userId;
+  if(req.user ){
+      userId=req.user._id.toString()
+  } 
+  else if (req.user ){
+      userId=req.user.userId .toString()
+  }
+  else{
+      userId='null'   
+  }
+  userId=='null'? loggedIn=false: loggedIn=true
+  const orders = await Order.find({ user: userId });
   res.status(StatusCodes.OK).json({ orders, count: orders.length });
 };
 const updateOrder = async (req, res) => {
+  let userId;
+  if(req.user ){
+      userId=req.user._id.toString()
+  } 
+  else if (req.user ){
+      userId=req.user.userId .toString()
+  }
+  else{
+      userId='null'   
+  }
+  userId=='null'? loggedIn=false: loggedIn=true
   const { id: orderId } = req.params;
   const { paymentIntentId } = req.body;
   const order = await Order.findOne({ _id: orderId });

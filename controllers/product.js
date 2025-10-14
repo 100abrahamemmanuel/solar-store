@@ -6,6 +6,27 @@ const path = require('path');
 const cloudinary = require('cloudinary').v2;
 const {  NotFoundError, BadRequestError, UnauthenticatedError } = require("../errors");
 
+const productViews = async (req, res) => {
+  // const {type}=req.body
+  // console.log(req.user._id)
+  let userId;
+  if(req.user ){
+      userId=req.user._id.toString()
+  } 
+  else if (req.user ){
+      userId=req.user.userId .toString()
+  }
+  else{
+      userId='null'   
+  }
+  userId=='null'? loggedIn=false: loggedIn=true
+ 
+  const user = await User.findOne({_id:userId}) 
+  
+  await newProduct.save()
+  res.status(StatusCodes.CREATED).json({ newProduct,loggedIn });
+};
+
 const createProduct = async (req, res) => {
   // const {type}=req.body
   // console.log(req.user._id)
@@ -162,10 +183,14 @@ const getSingleProduct = async (req, res) => {
   userId=='null'? loggedIn=false: loggedIn=true
   const { id: productId } = req.params;
   const product = await Product.findOne({ _id: productId }).populate('reviews');
-
   if (!product) {
     throw new NotFoundError(`No product with id : ${productId}`);
   }
+
+  if(!product.views.includes(userId) && userId!='null' )product.views.push(userId)
+                
+  await product.save()
+        
 
   res.status(StatusCodes.OK).json({ product,loggedIn });
 };
