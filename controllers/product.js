@@ -170,6 +170,7 @@ const searchProducts = async (req, res) => {
 };
 
 const getSingleProduct = async (req, res) => {
+  //  console.log(req.user)
   let userId;
   if(req.user ){
       userId=req.user._id.toString()
@@ -186,16 +187,17 @@ const getSingleProduct = async (req, res) => {
   if (!product) {
     throw new NotFoundError(`No product with id : ${productId}`);
   }
-
   if(!product.views.includes(userId) && userId!='null' )product.views.push(userId)
-                
-  await product.save()
+    
+    await product.save()
+    // console.log(product.views.includes(userId))
+    // console.log(userId=='null' )
         
 
   res.status(StatusCodes.OK).json({ product,loggedIn });
 };
 const updateProduct = async (req, res) => {
- 
+
   let userId;
   if(req.user ){
       userId=req.user._id.toString()
