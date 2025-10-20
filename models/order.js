@@ -29,7 +29,7 @@ const OrderSchema = mongoose.Schema(
     orderItems: [SingleOrderItemSchema],
     status: {
       type: String,
-      enum: ['pending', 'failed', 'paid', 'delivered', 'canceled'],
+      enum: ['pending', 'paid', 'delivered', 'canceled'],
       default: 'pending',
     },
     user: {
@@ -70,6 +70,12 @@ const OrderSchema = mongoose.Schema(
     //   required: true,
     // },
     paymentIntentId: {
+      type: String,
+    },
+    flw_ref: {
+      type: String,
+    },
+    tx_ref: {
       type: String,
     },
   },

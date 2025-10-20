@@ -141,6 +141,7 @@ const getAllProducts = async (req, res) => {
   res.status(StatusCodes.OK).json({ products, count: products.length,loggedIn });
 };
 
+
 const searchProducts = async (req, res) => {
      let userId;
   if(req.user ){

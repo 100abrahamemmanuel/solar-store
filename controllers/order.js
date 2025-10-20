@@ -19,7 +19,7 @@ const createOrder = async (req, res) => {
       userId='null'   
   }
   userId=='null'? loggedIn=false: loggedIn=true
-  const { items: cartItems, shippingFee, phoneNumber,name,states,address,appartment,shippingMethod,refreshToken } = req.body;
+  const { items: cartItems, shippingFee, phoneNumber,name,states,address,appartment,shippingMethod,paymentIntentId,tx_ref,flw_ref } = req.body;
 
   if (!cartItems || cartItems.length < 1) {
     throw new CustomError.BadRequestError('No cart items provided');
@@ -60,11 +60,15 @@ const createOrder = async (req, res) => {
     shippingFee,
     phoneNumber,
     name,
+    status:'paid',
     states,
     address,
     appartment,
     shippingMethod,
-    refreshToken,
+    paymentIntentId,
+    tx_ref,
+    flw_ref
+
     // refreshToken: paymentIntent.client_secret,
   });
 
