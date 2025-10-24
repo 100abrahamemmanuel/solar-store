@@ -61,10 +61,6 @@ const OrderSchema = mongoose.Schema(
       type: String,
       enum: ['Delivery', 'Self-Pickup'],
     },
-    refreshToken: {
-      type: String,
-      required: true,
-    },
     // clientSecret: {
     //   type: String,
     //   required: true,
