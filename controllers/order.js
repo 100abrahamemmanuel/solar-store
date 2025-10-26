@@ -27,7 +27,7 @@ const createOrder = async (req, res) => {
   if (!shippingFee) {
     throw new CustomError.BadRequestError('Please provide shipping fee');
   }
-
+ 
   let orderItems = [];
   let subtotal = 0;
 
@@ -144,14 +144,13 @@ const updateOrder = async (req, res) => {
   }
   userId=='null'? loggedIn=false: loggedIn=true
   const { id: orderId } = req.params;
-  const { paymentIntentId } = req.body;
+  const { status } = req.body;
   const order = await Order.findOne({ _id: orderId });
   if (!order) {
     throw new CustomError.NotFoundError(`No order with id : ${orderId}`);
   }
   checkPermissions(req.user, order.user);
-  order.paymentIntentId = paymentIntentId;
-  order.status = 'paid';
+  order.status = status;
   await order.save();
   
   res.status(StatusCodes.OK).json({ order });
